@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      /* remove extra spacing around elements so we can fill the available page */
+      * {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      // import the Three.js module:
+      import * as THREE from 'https://unpkg.com/three@0.126.0/build/three.module.js';
+      import { OrbitControls } from 'https://unpkg.com/three@0.126.0/examples/jsm/controls/OrbitControls.js';
+      import Stats from 'https://unpkg.com/three@0.126.0/examples/jsm/libs/stats.module';
+      import { GUI } from 'https://unpkg.com/three@0.126.0/examples/jsm/libs/dat.gui.module.js';
+
+      let camera, scene, renderer;
+      let geometry, material, mesh;
+
+      const gui = new GUI();
+      const stats = Stats();
+      document.body.appendChild(stats.dom);
+
+      const meshes = [];
+      var count = new (function () {
+        this.Total = 20;
+      })();
+      gui.add(count, 'Total', 1, 200);
+
+      //var amount = parseInt( window.location.search.substr( 1 ) ) || 10;
+
+      init();
+      animate();
+
+      function init() {
+        camera = new THREE.PerspectiveCamera(
+          50,
+          window.innerWidth / window.innerHeight,
+          0.01,
+          1000
+        );
+        // camera.position.z = 2;
+        // camera.position.x = 1.5;
+
+        camera.position.set(0, 50, 350);
+
+        // do this now and whenever the window is resized()
+        window.addEventListener(
+          'resize',
+          function () {
+            // ensure the renderer fills the page, and the camera aspect ratio matches:
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+          },
+          false
+        );
+
+        scene = new THREE.Scene();
+        geometry = new THREE.BoxGeometry();
+        material = new THREE.MeshNormalMaterial();
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.HemisphereLight(0xfff0f0, 0x606066);
+        scene.add(light);
+
+        // ORBIT CONTROLS (use domElements)
+        const controls = new OrbitControls(camera, renderer.domElement);
+        //controls.minDistance = 20;
+        controls.maxDistance = 1500;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        updateNum();
+      }
+
+      function updateNum() {
+        scene.remove(mesh);
+        for (let i = 0; i < count.Total; i++) {
+          mesh = new THREE.Mesh(geometry, material); // instanciate
+
+          // width or circumference of tornado
+          var x = i / 2;
+
+          mesh.position.x = x * Math.cos(i);
+          mesh.position.y = i;
+          mesh.position.z = x * Math.sin(i);
+
+          mesh.rotation.x = i * 30;
+          mesh.rotation.y = i * 40;
+          mesh.rotation.z = i * 50;
+
+          //mesh.position.x = i/3;
+          scene.add(mesh);
+        }
+      }
+      function animate() {
+        requestAnimationFrame(animate);
+        updateNum();
+
+        mesh.geometry.attributes.position.needsUpdate = true; // required after the first render
+
+        stats.update();
+        render();
+      }
+
+      function render() {
+        for (let i = 0; i < count.Total; i++) {
+          // clean up
+
+          //meshes[i].geometry.dispose();
+          //meshes.material.dispose();
+          scene.remove(mesh);
+        }
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+</html>
